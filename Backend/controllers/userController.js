@@ -25,9 +25,34 @@ const registerUser = async function (req, res) {
   }
 };
 
+const loginUser = async function (req, res) {
+  const data = req.body;
+
+  const foundUser = await userModel.findOne({
+    email: data.email
+  });
+
+  if (foundUser !== null) {
+    if(await bcrypt.compare(data.password,foundUser.password)){
+        const token = jwt.sign({email : data.email},process.env.JWT_SECRET_KEY);
+
+        res.cookie("token",token);
+
+        
+
+        return res.status(201).send("Succesfully logged in");
+    }
+    else{
+        return res.status(400).send("Error");
+    }
+  } else {
+    return res.status(400).send("Error");
+  }
+};
+
 const logoutUser = (req,res) =>{
     res.cookie("token","");
     return res.status(201).send("Succesfull logged Out")
 }
 
-module.exports = { loginUser, registerUser,logoutUser};
+module.exports = { loginUser, registerUser, logoutUser};
