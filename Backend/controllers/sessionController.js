@@ -11,7 +11,6 @@ const createSession = async (req, res) => {
   const createdSession = await userSessionModel.create({
     SessionId: sessionId,
     host: req.user.name,
-    duration: req.body.duration,
     key: sessionKey,
     participants: req.body.participants,
     startTime: req.body.startTime,
@@ -20,3 +19,48 @@ const createSession = async (req, res) => {
 
   res.send(createdSession);
 };
+
+const joinSession = async (req, res) => {
+  const foundedSession = await userSessionModel.findOne({
+    key: req.body.key,
+  });
+
+  if (!foundedSession) {
+    return res
+      .status(401)
+      .send("Wrong SessionId provied please check the details correctly");
+  } else {
+    const currentTime = new Date();
+
+    if (foundedSession.status === "Expired") {
+      return res.status(401).send("Session Expired");
+    } else if (foundedSession.status === "Scheduled") {
+      if (
+        currentTime >= foundedSession.startTime &&
+        currentTime <= foundedSession.endTime
+      ) {
+        foundedSession.status = "Active";
+        foundedSession.participants.push(req.user.name);
+        await foundedSession.save();
+
+        return res.status(200).send("Succesfully joined");
+      } else {
+        foundedSession.status = "Expired";
+        await foundedSession.save();
+        return res.status(401).send("Session Expired");
+      }
+    } else if (foundedSession === "Active") {
+      if (currentTime > foundedSession.endTime) {
+        foundedSession.status = "Expired";
+        await foundedSession.save();
+        return res.status(401).send("Session Expired");
+      } else {
+        foundedSession.participants.push(req.user.name);
+        await foundedSession.save();
+        return res.status(200).send("Succesfully joined");
+      }
+    }
+  }
+};
+
+module.exports = {createSession,joinSession};

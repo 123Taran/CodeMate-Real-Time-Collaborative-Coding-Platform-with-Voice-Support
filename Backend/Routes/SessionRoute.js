@@ -11,3 +11,10 @@ router.post("/createSession", checkForLogin, (req, res) => {
 
   createSession(req,res);
 });
+
+
+router.post("/joinSession", checkForLogin, (req, res) => {
+  joinSession(req,res);
+});
+
+module.exports = router;

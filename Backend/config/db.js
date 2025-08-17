@@ -1,8 +1,10 @@
 const mongoose = require("mongoose");
 
+require ("dotenv").config();
+
 const connectionDb = async ()=>{
     try{
-        await mongoose.connect("mongodb://127.0.0.1:27017/code");
+        await mongoose.connect(process.env.Database_Connection_URL);
 
         console.log("DB Connected");
     }
